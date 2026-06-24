@@ -14,36 +14,39 @@ class KuisApiController extends Controller
     {
         $tipe = $request->input('tipe', 'edukasi');
 
-        $soal = KuisSoal::with(['spesies', 'observasi'])
-            ->where('tipe_soal', $tipe)
+        if ($tipe === 'edukasi') {
+
+        $soal = \App\Models\Spesies::query()
+            ->whereNotNUll('foto_referensi')
             ->inRandomOrder()
             ->take(5)
             ->get()
             ->map(function ($s) {
+                $provinsi = $s -> provinsi?->first();
                 return [
                     'id' => $s->id,
-                    'foto' => $s->fotoSoal(),
-                    'tipe_soal' => $s->tipe_soal,
-                    'provinsi_konteks' => $s->observasi?->provinsi?->nama_provinsi
-                        ?? $s->spesies?->provinsi?->first()?->nama_provinsi,
+                    'foto' => $s->foto_referensi,
+                    'tipe_soal' => 'edukasi',
+                    'provinsi_konteks' =>  $provinsi?->nama_provinsi,
+                    'jawaban' => $s->nama_lokal,
                 ];
             });
 
         return response()->json($soal);
+        }
     }
 
     public function jawab(Request $request, int $id): JsonResponse
     {
-        $validated = $request->validate(['jawaban' => 'required|string']);
+        $validated = $request->validate([
+            'jawaban' => 'required|string'
+        ]);
 
-        $soal = KuisSoal::with('spesies')->findOrFail($id);
-        $jawabanBenar = $soal->spesies?->nama_lokal ?? '';
+        $spesies = \App\Models\Spesies::findOrFail($id);
+        $jawabanBenar = $spesies->nama_lokal;
 
-        $benar = strtolower(trim($validated['jawaban'])) === strtolower(trim($jawabanBenar));
-
-        if ($soal->tipe_soal === 'tantangan_identifikasi' && $soal->observasi_id) {
-            $this->catatTebakanTantangan($soal, $validated['jawaban']);
-        }
+        $benar = strtolower(trim($validated['jawaban']))
+            === strtolower(trim($jawabanBenar));
 
         return response()->json([
             'benar' => $benar,

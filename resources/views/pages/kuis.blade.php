@@ -4,19 +4,65 @@
 
 @section('content')
 
-<div class="container mt-5 pt-4 pb-5" style="max-width: 640px;">
-  <h3 class="fw-bold mb-1">Kuis Fauna Nusantara</h3>
-  <p class="text-muted mb-4">
-    Uji wawasanmu soal satwa khas Indonesia, atau bantu identifikasi temuan warga lain dan kumpulkan poin.
-  </p>
+<div class="container mt-5 pt-4 pb-5">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <h3 class="fw-bold mb-1">Kuis Fauna Nusantara</h3>
+      <p class="text-muted mb-4">
+        Uji wawasanmu soal satwa khas Indonesia, atau bantu identifikasi temuan warga lain dan kumpulkan poin.
+      </p>
 
-  <div id="area-pilih-mode" class="d-grid gap-2">
-    <button class="btn btn-primary" onclick="mulaiKuis('edukasi')">Kuis Edukasi</button>
-    <button class="btn btn-outline-primary" onclick="mulaiKuis('tantangan_identifikasi')">Tebak Temuan Warga</button>
-  </div>
+      <div id="area-pilih-mode" class="row g-3">
+        <div class="col-sm-6">
+          <div class="card shadow-sm h-100 text-center p-3" role="button" onclick="mulaiKuis('edukasi')">
+            <div class="card-body">
+              <h5 class="fw-bold mb-2">Kuis Edukasi</h5>
+              <p class="small text-muted mb-3">Tebak fauna khas dari tiap provinsi Indonesia. Cocok untuk belajar sambil main.</p>
+              <span class="btn btn-primary w-100">Mulai Kuis</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="card shadow-sm h-100 text-center p-3" role="button" onclick="mulaiKuis('tantangan_identifikasi')">
+            <div class="card-body">
+              <h5 class="fw-bold mb-2">Tebak Temuan Warga</h5>
+              <p class="small text-muted mb-3">Bantu identifikasi foto observasi warga lain yang belum diketahui jenisnya.</p>
+              <span class="btn btn-outline-primary w-100">Mulai Tantangan</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <div id="area-kuis-aktif" class="card shadow-sm d-none mt-3">
-    <div class="card-body" id="isi-kuis-aktif"></div>
+      <div id="area-kuis-aktif" class="card shadow-sm d-none mt-3">
+        <div class="card-body" id="isi-kuis-aktif"></div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Pengamat dengan poin kuis terbanyak</h6>
+          @forelse ($topKuis as $i => $p)
+            <div class="d-flex justify-content-between align-items-center {{ $i < count($topKuis) - 1 ? 'border-bottom pb-2 mb-2' : '' }}">
+              <span class="small">{{ $i + 1 }}. {{ $p->name }}</span>
+              <span class="badge bg-primary">{{ $p->poin_kuis }} poin</span>
+            </div>
+          @empty
+            <p class="small text-muted mb-0">Belum ada yang bermain kuis. Jadilah yang pertama!</p>
+          @endforelse
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2">Cara mendapat poin</h6>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-2">Setiap jawaban benar bernilai 3 poin.</li>
+            <li class="mb-0">Mode "Tebak Temuan Warga" juga membantu proses verifikasi komunitas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -67,6 +113,8 @@
     }
 
     const soal = soalKuis[indeksSoal];
+    console.log(soal);
+console.log(soal.foto);
     const konteks = soal.tipe_soal === "tantangan_identifikasi"
       ? `Foto ini dilaporkan oleh pengamat lain di ${soal.provinsi_konteks || "Indonesia"}. Bantu identifikasi spesiesnya.`
       : `Fauna khas dari ${soal.provinsi_konteks || "Indonesia"}`;

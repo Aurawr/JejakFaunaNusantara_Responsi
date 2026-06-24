@@ -1,14 +1,3 @@
-{{--
-  File ini khusus menangani geometri titik (Point) untuk observasi fauna
-  yang SUDAH ADA di peta: edit dan hapus. Di-include oleh map.blade.php.
-  Fungsi loadObservasiWarga() dipanggil dari sini karena observasi memang
-  selalu berupa titik di platform ini.
-
-  Form untuk lapor observasi BARU sekarang punya halaman sendiri di
-  /lapor (lihat pages/lapor.blade.php), bukan FAB+modal di atas peta ini
-  lagi, supaya peta utama fokus untuk eksplorasi data.
---}}
-
 <div id="instruksi-klik-peta" class="instruksi-klik d-none">
   Tandai lokasi baru di peta untuk laporan ini
 </div>
@@ -16,7 +5,9 @@
 @push('scripts')
 <script>
   /* ================= EDIT OBSERVASI TITIK ================= */
+  let markerEdit = null;
   function mulaiEditObservasi(id) {
+    map.closePopup();
     fetch(`/api/observasi/${id}`, {
       headers: { "X-CSRF-TOKEN": window.csrfToken }
     })
@@ -34,6 +25,41 @@
     const [lng, lat] = data.geometry.coordinates;
     map.setView([lat, lng], 14);
 
+    window.titikEditBaru = null;
+
+    window.markerYangDiedit = window.markerObservasi[data.id];
+
+    if (window.markerYangDiedit) {
+        map.removeLayer(window.markerYangDiedit);
+    }
+    if (markerEdit) {
+        map.removeLayer(markerEdit);
+    }
+
+    markerEdit = L.marker([lat, lng], {
+        draggable: true,
+        icon: iconTitikFauna
+    }).addTo(map);
+
+    markerEdit.bindPopup(
+        "Geser marker untuk mengubah lokasi observasi"
+    ).openPopup();
+
+    markerEdit.on("dragend", function (e) {
+
+    const posisiBaru = e.target.getLatLng();
+
+    window.titikEditBaru = {
+        lat: posisiBaru.lat,
+        lng: posisiBaru.lng
+    };
+
+    tampilkanToast(
+        "Lokasi baru dipilih. Klik Simpan Perubahan untuk menerapkan.",
+        "success"
+    );
+});
+
     openSidebar("Ubah Laporan Observasi", `
       <div class="mb-2 text-center">
         <img class="fauna-img-sidebar w-100" src="storage/observasi/${data.foto}" alt="Foto saat ini">
@@ -47,23 +73,12 @@
       <input id="input-tanggal-edit" type="date" class="form-control mb-2" value="${data.tanggal_amatan}">
       <label class="form-label small fw-semibold">Catatan tambahan</label>
       <textarea id="input-catatan-edit" class="form-control mb-2" rows="2">${data.catatan || ''}</textarea>
-      <p class="small text-muted mb-2">Klik di peta untuk memindahkan titik lokasi, atau biarkan jika tidak berubah.</p>
-      <button class="btn btn-outline-secondary w-100 mb-2" onclick="aktifkanModeKlikUlangTitik(${data.id})">Pindahkan Titik di Peta</button>
+      <p class="small text-muted mb-2"> Geser marker pada peta untuk mengubah lokasi observasi.</p>
       <button class="btn btn-success w-100" onclick="simpanEditObservasi(${data.id})">Simpan Perubahan</button>
     `);
 
     window.titikEditBaru = null;
-  }
 
-  function aktifkanModeKlikUlangTitik(id) {
-    document.getElementById("instruksi-klik-peta").classList.remove("d-none");
-    map.getContainer().style.cursor = "crosshair";
-    map.once("click", (e) => {
-      window.titikEditBaru = { lat: e.latlng.lat, lng: e.latlng.lng };
-      document.getElementById("instruksi-klik-peta").classList.add("d-none");
-      map.getContainer().style.cursor = "";
-      tampilkanToast("Titik baru dicatat. Klik 'Simpan Perubahan' untuk menyimpan.", "success");
-    });
   }
 
   function simpanEditObservasi(id) {
@@ -87,10 +102,19 @@
     })
       .then(r => r.json())
       .then(data => {
+
+        if (markerEdit) {
+            map.removeLayer(markerEdit);
+            markerEdit = null;
+        }
+
+        window.markerYangDiedit = null;
+        
         closeSidebar();
         tampilkanToast(data.message || "Perubahan tersimpan.", "success");
         loadObservasiWarga();
       })
+
       .catch(() => tampilkanToast("Gagal menyimpan perubahan. Periksa koneksi dan coba lagi.", "error"));
   }
 

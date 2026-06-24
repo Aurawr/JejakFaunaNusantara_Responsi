@@ -78,6 +78,30 @@ body {
   right: 0;
   z-index: 1;
 }
+/* IKON PIN TITIK FAUNA (disamakan untuk fauna khas & observasi warga) */
+.marker-fauna-pin {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border: 3px solid #ffffff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-fauna-pin span {
+  transform: rotate(45deg);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.marker-fauna-icon {
+  background: transparent !important;
+  border: none !important;
+}
 
 /* SIDEBAR */
 #sidebar {
@@ -267,6 +291,15 @@ table th, table td {
   cursor: pointer;
 }
 
+#faunaTable tbody tr:hover {
+  background-color: #f1fdf5;
+}
+
+#faunaTable thead {
+  background: var(--primary);
+  color: #fff;
+}
+
 .badge {
   border-radius: 12px;
 }
@@ -328,83 +361,10 @@ table th, table td {
   }
 }
 
-/* SARAN PENCARIAN FAUNA (dropdown custom, ganti datalist bawaan browser) */
-.search-suggestions {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 2px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-  max-height: 180px;
-  overflow-y: auto;
-  z-index: 1200;
-}
-
-.search-suggestion-item {
-  padding: 7px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  border-bottom: 1px solid #f1f1f1;
-}
-
-.search-suggestion-item:last-child {
-  border-bottom: none;
-}
-
-.search-suggestion-item:hover {
-  background: var(--soft-bg);
-  color: #2e7d32;
-}
-
-/* IKON PIN TITIK FAUNA (disamakan untuk fauna khas & observasi warga) */
-.marker-fauna-pin {
-  width: 32px;
-  height: 32px;
-  background: var(--accent);
-  border: 3px solid #ffffff;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.marker-fauna-pin span {
-  transform: rotate(45deg);
-  font-size: 15px;
-  line-height: 1;
-}
-
-.marker-fauna-icon {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* TOMBOL EDIT & HAPUS DI POPUP (fill color, bukan outline) */
-.popup-simple .btn-fill-aksi {
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-}
-
-.popup-simple .btn-fill-aksi:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  filter: brightness(1.05);
-}
-
-.popup-simple .btn-primary.btn-fill-aksi {
-  background: var(--secondary);
-}
-
-.popup-simple .btn-danger.btn-fill-aksi {
-  background: #E53935;
+/* TAB KECIL DI SIDEBAR (fauna khas vs observasi warga per provinsi) */
+.nav-tabs-sm .nav-link {
+  font-size: 0.8rem;
+  padding: 6px 10px;
 }
 
 /* LEGENDA PETA */
@@ -442,14 +402,19 @@ table th, table td {
   margin-bottom: 6px;
 }
 
+.legend-marker {
+  width: 14px;
+  height: 22px;
+  margin-right: 8px;
+}
+
 .legend-marker-pin {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 25px;
   background: var(--accent);
   border: 2px solid #ffffff;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -597,4 +562,20 @@ table th, table td {
 
 .auth-link:hover {
   text-decoration: underline;
+}
+
+/* ================= GALERI ================= */
+.galeri-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+
+.galeri-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.galeri-thumb {
+  height: 160px;
+  object-fit: cover;
 }

@@ -13,6 +13,7 @@
         <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Beranda</a>
         <a class="nav-link {{ request()->routeIs('peta') ? 'active' : '' }}" href="{{ route('peta') }}">Peta Sebaran</a>
         <a class="nav-link {{ request()->routeIs('tabel') ? 'active' : '' }}" href="{{ route('tabel') }}">Tabel Data</a>
+        <a class="nav-link {{ request()->routeIs('galeri') || request()->routeIs('galeri.detail') ? 'active' : '' }}" href="{{ route('galeri') }}">Galeri</a>
 
         @auth
           <a class="nav-link {{ request()->routeIs('lapor') ? 'active' : '' }}" href="{{ route('lapor') }}">Lapor Observasi</a>
@@ -20,7 +21,7 @@
           <a class="nav-link {{ request()->routeIs('papan-skor') || request()->routeIs('riwayat-pengamat') ? 'active' : '' }}" href="{{ route('papan-skor') }}">Papan Peringkat</a>
           <form method="POST" action="{{ route('logout') }}" class="d-inline ms-2">
             @csrf
-            <button class="btn btn-sm btn-danger btn-pill ms-2" type="submit">Keluar</button>
+            <button class="btn btn-sm btn-danger btn-pill" type="submit">Keluar</button>
           </form>
           @else
           <a class="btn btn-sm btn-success btn-pill ms-2" href="{{ route('login') }}">Masuk</a>

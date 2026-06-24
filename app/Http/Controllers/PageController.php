@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Observasi;
 use App\Models\Spesies;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class PageController extends Controller
 {
@@ -52,6 +53,27 @@ class PageController extends Controller
         return view('pages.tabel');
     }
 
+    public function galeri()
+    {
+        // Halaman publik, grid foto gabungan fauna khas + observasi warga,
+        // datanya diambil lewat GaleriApiController::index() (AJAX), bukan
+        // di-render langsung di sini, supaya pagination & search bisa
+        // jalan tanpa reload halaman penuh.
+        return view('pages.galeri');
+    }
+
+    public function galeriDetail(string $tipe, int $id)
+    {
+        // Halaman detail punya URL sendiri (bukan modal JS murni) agar bisa
+        // dibagikan/dibookmark, mengikuti pola halaman detail observasi
+        // iNaturalist yang juga punya URL tersendiri per observasi.
+        if (! in_array($tipe, ['fauna_khas', 'observasi'], true)) {
+            abort(404);
+        }
+
+        return view('pages.galeri-detail', ['tipe' => $tipe, 'id' => $id]);
+    }
+
     public function lapor()
     {
         // Halaman ini dipisah dari peta utama dan dilindungi middleware
@@ -60,14 +82,38 @@ class PageController extends Controller
         // seperti sebelumnya saat fitur ini masih berupa FAB di atas peta:
         // pengunjung yang belum login otomatis diarahkan ke halaman login
         // oleh middleware sebelum sempat melihat halaman ini.
-        return view('pages.lapor');
+        //
+        // Statistik komunitas ditampilkan di panel samping supaya halaman
+        // tidak terasa kosong, sama seperti yang sudah ada di beranda.
+        return view('pages.lapor', [
+            'totalObservasiTerverifikasi' => Observasi::where('status_verifikasi', 'terverifikasi')->count(),
+            'totalAnggota' => User::count(),
+        ]);
     }
 
     public function kuis()
     {
         // Sama seperti /lapor, dilindungi middleware auth+verified di
         // routes/web.php, jadi tidak perlu periksaLoginSebelumAksi lagi.
-        return view('pages.kuis');
+        //
+        // Papan peringkat mini ini berbeda dari papanSkor() (yang pakai
+        // total_poin gabungan observasi+kuis) — di sini khusus menjumlah
+        // poin yang sumbernya 'kuis' saja dari tabel skor_riwayat, supaya
+        // relevan dengan konteks halaman ini.
+        $topKuis = User::query()
+            ->select('users.id', 'users.name')
+            ->selectSub(
+                DB::table('skor_riwayat')
+                    ->selectRaw('COALESCE(SUM(poin), 0)')
+                    ->whereColumn('user_id', 'users.id')
+                    ->where('sumber_poin', 'kuis'),
+                'poin_kuis'
+            )
+            ->orderByDesc('poin_kuis')
+            ->take(5)
+            ->get();
+
+        return view('pages.kuis', compact('topKuis'));
     }
 
     public function papanSkor()

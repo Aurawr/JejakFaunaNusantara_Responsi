@@ -11,10 +11,6 @@
 
 @push('scripts')
 <script>
-  /* Variabel global dipakai bersama oleh map.blade.php dan
-     map-edit-point.blade.php, karena keduanya berjalan di halaman peta
-     yang sama. Lapor observasi (/lapor) dan kuis (/kuis) sudah jadi
-     halaman sendiri dan punya variabel globalnya masing-masing. */
   window.routeObservasiGeojson = "{{ url('/api/observasi/geojson') }}";
   window.routeProvinsiGeojson = "{{ url('/api/provinsi/wfs-proxy') }}";
   window.routeTitikFaunaKhasGeojson = "{{ url('/api/spesies/titik-geojson') }}";
@@ -27,13 +23,10 @@
   const ASIATIS = "#A5D6A7";
   const PERALIHAN = "#FFE082";
   const AUSTRALIS = "#90CAF9";
+  const DEFAULT_CENTER = [-2, 118];
+  const DEFAULT_ZOOM = 5.4;
 
-  /* ================= IKON MARKER (DISAMAKAN UNTUK FAUNA KHAS & OBSERVASI WARGA) =================
-     Sebelumnya tiap sumber data punya warna marker sendiri (ungu vs biru).
-     Sekarang simbolnya disamakan: satu bentuk pin yang sama dipakai untuk
-     kedua sumber data, supaya pengguna fokus membedakan lewat isi sidebar
-     (klik titik), bukan lewat warna ikon di peta.
-  */
+  /* ================= IKON MARKER (DISAMAKAN UNTUK FAUNA KHAS & OBSERVASI WARGA) =================*/
   const iconTitikFauna = L.divIcon({
     className: "marker-fauna-icon",
     html: '<div class="marker-fauna-pin"><span>🐾</span></div>',
@@ -69,13 +62,6 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  // Dipakai untuk menyisipkan string (misal nama fauna) sebagai argumen
-  // inline onclick="..." yang aman, termasuk kalau namanya mengandung
-  // tanda kutip ganda atau apostrof (contoh: nama daerah/spesies tertentu).
-  // JSON.stringify menghasilkan string berkutip-dua; tanda kutip itu di-
-  // escape jadi &quot; supaya tidak menutup atribut HTML lebih awal.
-  // Browser akan men-decode &quot; balik jadi " sebelum JS membaca onclick,
-  // jadi hasil akhirnya tetap string literal JS yang valid.
   function jsArg(str) {
     return JSON.stringify(str).replace(/"/g, "&quot;");
   }
@@ -95,7 +81,6 @@
         <input type="number" id="radius-buffer-km" class="form-control form-control-sm" style="width:64px" value="10" min="1" max="500">
         <span class="small text-muted">km</span>
       </div>
-      <p class="small text-muted mb-0 mt-1">Buffer radius otomatis muncul saat fauna yang dicari ditemukan.</p>
     `;
     L.DomEvent.disableClickPropagation(div);
     L.DomEvent.disableScrollPropagation(div);
@@ -115,8 +100,6 @@
       }
     });
 
-    // Sengaja TIDAK menampilkan saran saat input baru difokus/diklik kosong;
-    // saran hanya muncul setelah pengguna mengetik nama yang mendekati.
     document.addEventListener("click", (e) => {
       if (!kotakSaran.contains(e.target) && e.target !== inputCari) {
         sembunyikanSaranFauna();
@@ -247,16 +230,32 @@
   }
 
   function closeSidebar() {
+    // batalkan mode edit jika sedang ada marker edit
+    if (markerEdit) {
+        map.removeLayer(markerEdit);
+        markerEdit = null;
+    }
+
+    // munculkan kembali marker asli
+    if (window.markerYangDiedit) {
+        observasiLayer.addLayer(window.markerYangDiedit);
+        window.markerYangDiedit = null;
+    }
+    
+    window.titikEditBaru = null;
+
     sidebar.classList.remove("sidebar-open");
     sidebar.style.width = "0";
-    setTimeout(() => { sidebar.style.display = "none"; }, 300);
-  }
+
+    setTimeout(() => {
+        sidebar.style.display = "none";
+    }, 300);
+
+    map.setView([-2, 118], 5.4);
+}
 
   /* ================= STYLING PROVINSI ================= */
-  // Data dari GeoServer (wfs-proxy) tidak punya kolom zona_biogeografi atau
-  // id provinsi lokal, karena itu murni data shapefile DUKCAPIL. Pemetaan
-  // nama provinsi ke zona biogeografi dihitung di sini, mengikuti pola
-  // getBiogeografiColor() pada kode project lama, bukan dibaca dari kolom.
+
   const ZONA_ASIATIS = [
     "ACEH", "SUMATERA UTARA", "SUMATERA BARAT", "KEPULAUAN RIAU", "RIAU", "JAMBI",
     "SUMATERA SELATAN", "BENGKULU", "LAMPUNG", "BANTEN", "DKI JAKARTA", "JAWA BARAT",
@@ -292,10 +291,7 @@
     return { color: "#455A64", weight: 2, fillOpacity: 0 };
   }
 
-  /* ================= LOAD LAYER PROVINSI (POLYGON + POLYLINE) =================
-     Klik polygon provinsi TIDAK lagi membuka sidebar (sidebar sekarang
-     khusus untuk informasi titik fauna). Hover masih menampilkan nama
-     provinsi lewat tooltip supaya konteks wilayah tetap ada. */
+  /* ================= LOAD LAYER PROVINSI (POLYGON + POLYLINE) ================= */
   fetch(window.routeProvinsiGeojson)
     .then(r => r.json())
     .then(data => {
@@ -312,12 +308,6 @@
       daftarkanLayerControl();
     });
 
-  /* ================= SIDEBAR INFORMASI TITIK FAUNA =================
-     Sidebar gabungan per-provinsi (dengan tabel ringkasan) sudah dibuang
-     karena tidak lagi dipakai. Sidebar sekarang murni menampilkan info
-     satu titik fauna: gambar, nama latin, deskripsi, dan status —
-     dipanggil langsung dari handler klik marker fauna khas / observasi
-     di bawah. */
 
   /* ================= LOAD LAYER MARKER FAUNA KHAS (TITIK REPRESENTATIF) ================= */
   function loadTitikFaunaKhas() {
@@ -386,6 +376,7 @@
   }
 
   function loadObservasiWarga() {
+    window.markerObservasi = {};
     observasiLayer.clearLayers();
     semuaTitik = semuaTitik.filter(t => t.sumber !== "observasi");
     fetch(window.routeObservasiGeojson)
@@ -394,6 +385,7 @@
         data.features.forEach(f => {
           const [lng, lat] = f.geometry.coordinates;
           const m = L.marker([lat, lng], { icon: iconTitikFauna });
+          window.markerObservasi[f.properties.id] = m;
           const milikSaya = window.currentUserId && f.properties.user_id === window.currentUserId;
           const bisaKelola = milikSaya || window.currentUserRole === 'verifikator' || window.currentUserRole === 'admin';
           const fotoUrl = `storage/observasi/${f.properties.foto}`;
@@ -407,8 +399,8 @@
               <span class="badge mt-1 ${badgeStatus(f.properties.status_verifikasi)}">${labelStatus(f.properties.status_verifikasi)}</span>
               ${bisaKelola ? `
                 <div class="d-flex gap-2 mt-2">
-                  <button class="btn btn-sm btn-primary btn-fill-aksi w-50" onclick="mulaiEditObservasi(${f.properties.id})">✏️ Edit</button>
-                  <button class="btn btn-sm btn-danger btn-fill-aksi w-50" onclick="hapusObservasi(${f.properties.id})">🗑️ Hapus</button>
+                  <button class="btn btn-sm btn-warning btn-fill-aksi w-50" onclick="mulaiEditObservasi(${f.properties.id})">Edit</button>
+                  <button class="btn btn-sm btn-danger btn-fill-aksi w-50" onclick="hapusObservasi(${f.properties.id})">Hapus</button>
                 </div>
               ` : ''}
             </div>
@@ -437,7 +429,7 @@
       <p class="fst-italic text-muted mb-2">${p.nama_ilmiah || "Belum teridentifikasi"}</p>
       <span class="badge ${badgeStatus(p.status_verifikasi)} mb-3">${labelStatus(p.status_verifikasi)}</span>
       <p class="small text-muted mb-2">Dilaporkan oleh ${p.nama_pengamat} &middot; ${p.tanggal_amatan}</p>
-      <p>${p.catatan || p.deskripsi || "Belum ada deskripsi tambahan dari pelapor."}</p>
+      <p>${p.catatan || "Belum ada deskripsi tambahan dari pelapor."}</p>
     `);
   }
 

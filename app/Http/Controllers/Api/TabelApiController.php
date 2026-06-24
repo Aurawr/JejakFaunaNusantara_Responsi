@@ -60,8 +60,6 @@ class TabelApiController extends Controller
             });
         }
 
-        // Total setelah filter pencarian dihitung dari query yang sama,
-        // sebelum order/limit ditempelkan, supaya paging DataTables akurat.
         $totalTersaring = $query->clone()->get()->count();
 
         $baris = $query->orderBy($orderKolom, $orderArah)
@@ -78,7 +76,7 @@ class TabelApiController extends Controller
                 'status_konservasi' => $row->status_konservasi,
                 'jumlah_provinsi' => $row->jumlah_provinsi,
                 'foto_url' => $row->foto_referensi
-                    ? Storage::disk('public')->url('referensi/' . $row->foto_referensi)
+                    ? Storage::disk('public')->url($row->foto_referensi)
                     : null,
             ];
         });

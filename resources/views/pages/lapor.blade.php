@@ -4,54 +4,104 @@
 
 @section('content')
 
-<div class="container mt-5 pt-4 pb-5" style="max-width: 640px;">
-  <h3 class="fw-bold mb-1">Lapor Observasi Fauna</h3>
-  <p class="text-muted mb-4">
-    Temukan satwa di sekitarmu? Laporkan di sini lengkap dengan foto dan lokasinya.
-    Laporanmu akan diperiksa komunitas sebelum tampil terverifikasi di
-    <a href="{{ route('peta') }}">Peta Sebaran</a>.
-  </p>
+<div class="container mt-5 pt-4 pb-5">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <h3 class="fw-bold mb-1">Lapor Observasi Fauna</h3>
+      <p class="text-muted mb-4">
+        Temukan satwa di sekitarmu? Laporkan di sini lengkap dengan foto dan lokasinya.
+      </p>
 
-  {{-- Langkah 1: pilih cara dapat foto & lokasi --}}
-  <div id="langkah-pilih-cara" class="card shadow-sm">
-    <div class="card-body">
-      <h5 class="fw-bold mb-3">Bagaimana kamu menemukan satwa ini?</h5>
-      <button class="btn btn-success w-100 mb-2" onclick="mulaiAmbilFotoLangsung()">
-        Ambil foto sekarang (pakai lokasi GPS saat ini)
-      </button>
-      <button class="btn btn-outline-secondary w-100" onclick="mulaiUploadFotoLama()">
-        Upload foto lama (tandai lokasi manual di peta)
-      </button>
-    </div>
-  </div>
-
-  {{-- Langkah 2: tandai lokasi manual di peta kecil (hanya untuk jalur upload foto lama) --}}
-  <div id="langkah-tandai-peta" class="card shadow-sm d-none">
-    <div class="card-body">
-      <h5 class="fw-bold mb-2">Tandai Lokasi Penemuan</h5>
-      <p class="small text-muted mb-2">Klik pada peta di titik tempat satwa ini ditemukan.</p>
-      <div id="mini-map" style="height: 320px; border-radius: 8px;"></div>
-      <button id="btn-konfirmasi-titik" class="btn btn-success w-100 mt-3 d-none" onclick="konfirmasiTitikManual()">
-        Gunakan Titik Ini
-      </button>
-    </div>
-  </div>
-
-  {{-- Langkah 3: form atribut laporan --}}
-  <div id="langkah-form-atribut" class="card shadow-sm d-none">
-    <div class="card-body">
-      <h5 class="fw-bold mb-3">Detail Laporan</h5>
-      <div class="mb-3 text-center">
-        <img id="preview-foto-lapor" class="fauna-img-sidebar w-100" alt="Pratinjau foto" style="max-height: 240px; object-fit: cover;">
+      {{-- Langkah 1: pilih cara dapat foto & lokasi --}}
+      <div id="langkah-pilih-cara" class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Bagaimana kamu menemukan satwa ini?</h5>
+          <button class="btn btn-success w-100 mb-2" onclick="mulaiAmbilFotoLangsung()">
+            Ambil foto sekarang (pakai lokasi GPS saat ini)
+          </button>
+          <button class="btn btn-outline-secondary w-100" onclick="mulaiUploadFotoLama()">
+            Upload foto lama (tandai lokasi manual di peta)
+          </button>
+        </div>
       </div>
-      <label class="form-label small fw-semibold">Nama fauna (jika tahu)</label>
-      <input id="input-nama-usulan" class="form-control mb-2" placeholder="Contoh: Burung Cenderawasih">
-      <label class="form-label small fw-semibold">Tanggal pengamatan</label>
-      <input id="input-tanggal" type="date" class="form-control mb-2" value="{{ now()->format('Y-m-d') }}">
-      <label class="form-label small fw-semibold">Catatan tambahan</label>
-      <textarea id="input-catatan" class="form-control mb-3" rows="2" placeholder="Ciri-ciri, jumlah individu, perilaku, dst."></textarea>
-      <button class="btn btn-success w-100" onclick="kirimObservasi()">Kirim Laporan</button>
-      <button class="btn btn-link w-100 text-muted" onclick="batalkanLaporan()">Batal, mulai ulang</button>
+
+      {{-- Langkah 2: tandai lokasi manual di peta kecil (hanya untuk jalur upload foto lama) --}}
+      <div id="langkah-tandai-peta" class="card shadow-sm d-none">
+        <div class="card-body">
+          <h5 class="fw-bold mb-2">Tandai Lokasi Penemuan</h5>
+          <p class="small text-muted mb-2">Klik pada peta di titik tempat satwa ini ditemukan.</p>
+          <div id="mini-map" style="height: 320px; border-radius: 8px;"></div>
+          <button id="btn-konfirmasi-titik" class="btn btn-success w-100 mt-3 d-none" onclick="konfirmasiTitikManual()">
+            Gunakan Titik Ini
+          </button>
+        </div>
+      </div>
+
+      {{-- Langkah 3: form atribut laporan --}}
+      <div id="langkah-form-atribut" class="card shadow-sm d-none">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Detail Laporan</h5>
+          <div class="mb-3 text-center">
+            <img id="preview-foto-lapor" class="fauna-img-sidebar w-100" alt="Pratinjau foto" style="max-height: 240px; object-fit: cover;">
+          </div>
+          <label class="form-label small fw-semibold">Nama fauna (jika tahu)</label>
+          <input id="input-nama-usulan" class="form-control mb-2" placeholder="Contoh: Burung Cenderawasih">
+          <label class="form-label small fw-semibold">Tanggal pengamatan</label>
+          <input id="input-tanggal" type="date" class="form-control mb-2" value="{{ now()->format('Y-m-d') }}">
+          <label class="form-label small fw-semibold">Catatan tambahan</label>
+          <textarea id="input-catatan" class="form-control mb-3" rows="2" placeholder="Ciri-ciri, jumlah individu, perilaku, dst."></textarea>
+          <button class="btn btn-success w-100" onclick="kirimObservasi()">Kirim Laporan</button>
+          <button class="btn btn-link w-100 text-muted" onclick="batalkanLaporan()">Batal, mulai ulang</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Tips supaya laporan cepat terverifikasi</h6>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-2 d-flex gap-2">
+              <span>1.</span>
+              <span>Pastikan foto memperlihatkan ciri khas fauna dengan jelas, bukan cuma bagian tubuh sebagian.</span>
+            </li>
+            <li class="mb-2 d-flex gap-2">
+              <span>2.</span>
+              <span>Isi nama fauna kalau kamu tahu — kalau ragu, biarkan kosong saja, biar komunitas yang bantu identifikasi.</span>
+            </li>
+            <li class="mb-0 d-flex gap-2">
+              <span>3.</span>
+              <span>Catatan tambahan (perilaku, jumlah individu) sangat membantu proses verifikasi.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Kontribusi komunitas</h6>
+          <div class="row text-center g-3">
+            <div class="col-6">
+              <div class="fw-bold text-success fs-5">{{ $totalObservasiTerverifikasi }}</div>
+              <div class="text-muted small">Laporan terverifikasi</div>
+            </div>
+            <div class="col-6">
+              <div class="fw-bold text-success fs-5">{{ $totalAnggota }}</div>
+              <div class="text-muted small">Anggota pengamat</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2">Setiap laporan bernilai 5 poin</h6>
+          <p class="small text-muted mb-0">
+            Poin tambahan didapat saat laporanmu terverifikasi komunitas. Lihat peringkatmu di
+            <a href="{{ route('papan-skor') }}">Papan Peringkat</a>.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

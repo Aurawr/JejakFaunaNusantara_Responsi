@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/peta', [PageController::class, 'peta'])->name('peta');
 Route::get('/tabel', [PageController::class, 'tabel'])->name('tabel');
+Route::get('/galeri', [PageController::class, 'galeri'])->name('galeri');
+Route::get('/galeri/{tipe}/{id}', [PageController::class, 'galeriDetail'])->name('galeri.detail');
 
 // Statistik komunitas yang dulu ada di /dashboard sekarang digabung ke
 // beranda (lihat PageController::home()) agar navbar tidak terlalu panjang.

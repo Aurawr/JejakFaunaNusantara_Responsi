@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\GaleriApiController;
 use App\Http\Controllers\Api\KuisApiController;
 use App\Http\Controllers\Api\ObservasiApiController;
 use App\Http\Controllers\Api\ProvinsiApiController;
@@ -24,6 +25,10 @@ Route::get('/observasi/geojson', [ObservasiApiController::class, 'geoJson']);
 // Halaman /tabel (DataTables server-side processing, format draw/start/length)
 Route::get('/tabel/fauna-khas', [TabelApiController::class, 'faunaKhas']);
 Route::get('/tabel/observasi', [TabelApiController::class, 'observasi']);
+
+// Halaman /galeri (grid foto gabungan fauna khas + observasi warga)
+Route::get('/galeri', [GaleriApiController::class, 'index']);
+Route::get('/galeri/{tipe}/{id}', [GaleriApiController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/observasi/{id}', [ObservasiApiController::class, 'show']);
